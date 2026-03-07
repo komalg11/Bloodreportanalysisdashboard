@@ -73,14 +73,38 @@ export const ParameterCard: React.FC<ParameterCardProps> = ({ parameter, onClick
         </div>
         
         <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden relative">
-          <div 
-            className={cn(
-              "h-full rounded-full transition-all duration-1000",
-              parameter.status === 'normal' ? "bg-emerald-500" : 
-              parameter.status === 'borderline' ? "bg-amber-500" : "bg-rose-500"
-            )}
-            style={{ width: `${Math.min(Math.max((parameter.value / 200) * 100, 10), 100)}%` }}
-          />
+          {(() => {
+            // Calculate progress percentage based on reference range
+            const rangeMatch = parameter.range.match(/(\d+\.?\d*)\s*[-–]\s*(\d+\.?\d*)/);
+            let percent = 50;
+            if (rangeMatch) {
+              const low = parseFloat(rangeMatch[1]);
+              const high = parseFloat(rangeMatch[2]);
+              const span = high - low;
+              if (span > 0) {
+                percent = Math.min(Math.max(((parameter.value - low) / span) * 100, 5), 100);
+              }
+            } else {
+              // For ranges like "< 200", use value/max
+              const ltMatch = parameter.range.match(/[<≤]\s*(\d+\.?\d*)/);
+              if (ltMatch) {
+                const max = parseFloat(ltMatch[1]);
+                percent = Math.min(Math.max((parameter.value / max) * 100, 5), 100);
+              } else {
+                percent = Math.min(Math.max((parameter.value / 200) * 100, 10), 100);
+              }
+            }
+            return (
+              <div 
+                className={cn(
+                  "h-full rounded-full transition-all duration-1000",
+                  parameter.status === 'normal' ? "bg-emerald-500" : 
+                  parameter.status === 'borderline' ? "bg-amber-500" : "bg-rose-500"
+                )}
+                style={{ width: `${percent}%` }}
+              />
+            );
+          })()}
         </div>
       </div>
     </motion.div>

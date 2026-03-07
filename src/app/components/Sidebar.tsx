@@ -29,7 +29,7 @@ interface SidebarProps {
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'upload', label: 'Upload Report', icon: UploadCloud },
-  { id: 'parameters', label: 'Blood Parameters', icon: Activity },
+  { id: 'parameters', label: 'Report Parameters', icon: Activity },
   { id: 'trends', label: 'Trends & History', icon: History },
   { id: 'insights', label: 'Insights & Summary', icon: Lightbulb },
   { id: 'profile', label: 'Profile', icon: User },

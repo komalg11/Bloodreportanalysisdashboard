@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Lightbulb, 
   AlertCircle, 
@@ -9,12 +9,28 @@ import {
   Info,
   Apple,
   Dumbbell,
-  Moon
+  Moon,
+  Loader2
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
-const insights = [
+interface Insight {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  category: string;
+  action: string;
+}
+
+interface InsightsViewProps {
+  reports?: any[];
+  loading?: boolean;
+}
+
+// Default insights for fallback
+const defaultInsights: Insight[] = [
   {
     id: '1',
     title: 'Anemia Risk Detected',
@@ -41,7 +57,117 @@ const insights = [
   }
 ];
 
-export const InsightsView: React.FC = () => {
+export const InsightsView: React.FC<InsightsViewProps> = ({ reports, loading }) => {
+  // Process insights from reports
+  const insights: Insight[] = useMemo(() => {
+    if (!reports || reports.length === 0) {
+      return defaultInsights;
+    }
+
+    // Get the latest report's analysis result
+    const latestReport = reports[0];
+    if (latestReport?.analysisResult) {
+      const analysis = latestReport.analysisResult;
+      const generatedInsights: any[] = [];
+
+      // Parse AI-generated insights if available
+      if (analysis.insights && Array.isArray(analysis.insights)) {
+        return analysis.insights.map((insight: any, idx: number) => ({
+          id: String(idx + 1),
+          title: insight.title || 'Health Insight',
+          description: insight.description || insight.message,
+          type: insight.type || insight.severity || 'info',
+          category: insight.category || 'General',
+          action: insight.action || insight.recommendation || 'Consult your healthcare provider.'
+        }));
+      }
+
+      // If insights is a string (from rules-based engine), use it as a summary
+      // and generate per-parameter insights below
+      const insightsSummary = typeof analysis.insights === 'string' ? analysis.insights : null;
+      const recommendationsText = typeof analysis.recommendations === 'string' ? analysis.recommendations : null;
+
+      // Generate insights from parameters if no AI insights
+      if (latestReport.parameters && Array.isArray(latestReport.parameters)) {
+        latestReport.parameters.forEach((param: any, idx: number) => {
+          const statusLower = (param.status || '').toLowerCase();
+          if (statusLower === 'low' || statusLower === 'high' || statusLower === 'borderline') {
+            generatedInsights.push({
+              id: String(idx + 1),
+              title: `${param.name} ${statusLower === 'low' ? 'Below' : statusLower === 'high' ? 'Above' : 'Near'} Range`,
+              description: `Your ${param.name} level is ${param.value} ${param.unit}, which is ${statusLower} compared to the reference range (${param.referenceRange || param.range || 'N/A'}).`,
+              type: statusLower === 'borderline' ? 'caution' : 'warning',
+              category: param.category || 'Blood Parameters',
+              action: param.recommendation || 'Discuss with your healthcare provider for personalized advice.'
+            });
+          }
+        });
+
+        // Add a positive insight if most parameters are normal
+        const normalCount = latestReport.parameters.filter((p: any) => (p.status || '').toLowerCase() === 'normal').length;
+        if (normalCount > latestReport.parameters.length / 2) {
+          generatedInsights.push({
+            id: 'positive',
+            title: 'Overall Health Looking Good',
+            description: `${normalCount} out of ${latestReport.parameters.length} parameters are within normal range. Keep up the good work!`,
+            type: 'success',
+            category: 'Overall Health',
+            action: 'Continue maintaining your current lifestyle and regular check-ups.'
+          });
+        }
+
+        if (generatedInsights.length > 0) {
+          // Add the overall summary insight at the top if available
+          if (insightsSummary) {
+            generatedInsights.unshift({
+              id: 'summary',
+              title: 'Health Summary',
+              description: insightsSummary,
+              type: generatedInsights.some((i: any) => i.type === 'warning') ? 'caution' : 'success',
+              category: 'Overall',
+              action: recommendationsText || 'Consult your healthcare provider for personalized advice.'
+            });
+          }
+          return generatedInsights;
+        }
+
+        // If no abnormal params but we have a summary, show it
+        if (insightsSummary) {
+          return [{
+            id: 'summary',
+            title: 'Health Summary',
+            description: insightsSummary,
+            type: 'success',
+            category: 'Overall',
+            action: recommendationsText || 'Continue maintaining your current healthy lifestyle.'
+          }];
+        }
+      }
+    }
+
+    return defaultInsights;
+  }, [reports]);
+
+  // Get last update date
+  const lastUpdated = useMemo(() => {
+    if (reports && reports.length > 0) {
+      const date = new Date(reports[0].reportDate || reports[0].createdAt);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    return 'Oct 24, 2025';
+  }, [reports]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 mx-auto mb-4 text-blue-500 animate-spin" />
+          <p className="text-slate-500">Loading insights...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -53,7 +179,7 @@ export const InsightsView: React.FC = () => {
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold uppercase tracking-wider border border-blue-100">
           <Brain size={16} />
-          Analysis Updated Oct 24, 2025
+          Analysis Updated {lastUpdated}
         </div>
       </div>
 
@@ -153,21 +279,7 @@ export const InsightsView: React.FC = () => {
             </button>
           </div>
 
-          <div className="bg-white border border-slate-100 rounded-[32px] p-8 shadow-sm">
-            <h3 className="font-bold text-slate-800 mb-4">Doctor's Note</h3>
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-sm text-slate-600 leading-relaxed">
-              "Patient shows slight iron deficiency anemia. Lipids are borderline. Suggest repeat tests in 3 months after dietary adjustments and starting iron supplements."
-            </div>
-            <div className="flex items-center gap-3 mt-4">
-              <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=100&h=100&q=80" alt="Doctor" className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-800">Dr. Sarah Jenkins</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Lead Hematologist</p>
-              </div>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>

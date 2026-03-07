@@ -5,9 +5,10 @@ import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 
 interface LoginScreenProps {
   onLogin: () => void;
+  onCreateAccount?: () => void;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onCreateAccount }) => {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-[32px] shadow-2xl shadow-slate-200/50 w-full max-w-5xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
@@ -112,7 +113,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             </form>
 
             <p className="text-center text-sm text-slate-500 mt-10">
-              Don't have an account? <button className="font-bold text-blue-600 hover:text-blue-700">Create an account</button>
+              Don't have an account?{' '}
+              <button 
+                onClick={onCreateAccount}
+                className="font-bold text-blue-600 hover:text-blue-700"
+              >
+                Create an account
+              </button>
             </p>
           </div>
         </div>

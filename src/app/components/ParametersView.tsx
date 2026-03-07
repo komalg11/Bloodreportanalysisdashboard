@@ -32,9 +32,9 @@ export const ParametersView: React.FC<ParametersViewProps> = ({ parameters, onSe
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Blood Parameters</h1>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Report Parameters</h1>
           <p className="text-slate-500 max-w-2xl">
-            Detailed view of all biomarkers tracked in your blood reports. Click on any parameter to view historical trends and clinical significance.
+            Detailed view of all parameters extracted from your blood reports. Click on any parameter to view historical trends and clinical significance.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -181,8 +181,15 @@ export const ParametersView: React.FC<ParametersViewProps> = ({ parameters, onSe
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
             <Search className="text-slate-300" size={24} />
           </div>
-          <h3 className="text-lg font-bold text-slate-700">No parameters found</h3>
-          <p className="text-slate-500">Try adjusting your search or filters to find what you're looking for.</p>
+          <h3 className="text-lg font-bold text-slate-700">
+            {parameters.length === 0 ? 'No Report Parameters Yet' : 'No parameters found'}
+          </h3>
+          <p className="text-slate-500">
+            {parameters.length === 0 
+              ? 'Upload a blood report to extract and view all your parameters here.'
+              : 'Try adjusting your search or filters to find what you\'re looking for.'
+            }
+          </p>
         </div>
       )}
     </div>

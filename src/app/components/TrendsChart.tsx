@@ -1,39 +1,61 @@
 import React from 'react';
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
   AreaChart,
-  Area
+  Area,
+  ReferenceArea,
+  ReferenceLine
 } from 'recharts';
-
-const data = [
-  { date: 'Oct', value: 14.2 },
-  { date: 'Nov', value: 13.8 },
-  { date: 'Dec', value: 14.5 },
-  { date: 'Jan', value: 13.2 },
-];
+import { parseReferenceRange } from '@/lib/parameterUtils';
 
 interface TrendsChartProps {
   parameterName: string;
   color?: string;
+  data?: { date: string; value: number }[];
+  referenceRange?: string;
 }
 
-export const TrendsChart: React.FC<TrendsChartProps> = ({ parameterName, color = "#3b82f6" }) => {
+export const TrendsChart: React.FC<TrendsChartProps> = ({
+  parameterName,
+  color = "#3b82f6",
+  data,
+  referenceRange
+}) => {
+  const chartData = data && data.length > 0
+    ? data.map(d => ({
+        date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+        value: Number(d.value)
+      }))
+    : [];
+  const { low, high } = parseReferenceRange(referenceRange);
+
+  if (chartData.length === 0) {
+    return (
+      <div className="h-[300px] w-full flex items-center justify-center text-slate-400">
+        <p className="text-sm">No trend data available for {parameterName}. Upload more reports to see trends.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={color} stopOpacity={0.1}/>
               <stop offset="95%" stopColor={color} stopOpacity={0}/>
             </linearGradient>
           </defs>
+          {low !== null && high !== null && (
+            <ReferenceArea y1={low} y2={high} fill="#10b981" fillOpacity={0.08} />
+          )}
+          {low !== null && <ReferenceLine y={low} stroke="#f59e0b" strokeDasharray="4 4" />}
+          {high !== null && <ReferenceLine y={high} stroke="#f59e0b" strokeDasharray="4 4" />}
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
           <XAxis 
             dataKey="date" 

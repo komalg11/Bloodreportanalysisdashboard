@@ -6,14 +6,13 @@ import {
   Calendar,
   Menu
 } from 'lucide-react';
-import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 
 interface TopNavProps {
   setIsMobileOpen: (open: boolean) => void;
-  patientName: string;
+  lastReportDate?: string | null;
 }
 
-export const TopNav: React.FC<TopNavProps> = ({ setIsMobileOpen, patientName }) => {
+export const TopNav: React.FC<TopNavProps> = ({ setIsMobileOpen, lastReportDate }) => {
   return (
     <header className="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8">
       <div className="h-full flex items-center justify-between gap-4">
@@ -27,7 +26,7 @@ export const TopNav: React.FC<TopNavProps> = ({ setIsMobileOpen, patientName }) 
           
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full text-slate-500 text-sm">
             <Calendar size={14} />
-            <span className="font-medium">Report Date: Jan 28, 2026</span>
+            <span className="font-medium">Last Report Date: {lastReportDate || 'N/A'}</span>
             <ChevronDown size={14} />
           </div>
         </div>
@@ -45,22 +44,6 @@ export const TopNav: React.FC<TopNavProps> = ({ setIsMobileOpen, patientName }) 
           <button className="relative p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-all">
             <Bell size={20} />
             <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 border-2 border-white rounded-full"></span>
-          </button>
-
-          <div className="h-8 w-px bg-slate-200 hidden lg:block"></div>
-
-          <button className="flex items-center gap-2 p-1 lg:pr-2 hover:bg-slate-50 rounded-full transition-all">
-            <div className="w-8 h-8 rounded-full bg-blue-100 overflow-hidden ring-2 ring-white">
-              <ImageWithFallback 
-                src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=100" 
-                alt="Avatar" 
-              />
-            </div>
-            <div className="hidden lg:block text-left">
-              <p className="text-sm font-semibold text-slate-800 leading-tight">{patientName}</p>
-              <p className="text-xs text-slate-500">Patient ID: #28471</p>
-            </div>
-            <ChevronDown size={14} className="text-slate-400 hidden lg:block" />
           </button>
         </div>
       </div>

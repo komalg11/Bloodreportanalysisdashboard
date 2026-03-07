@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reports   Report[]
+}
+
+model Report {
+  id             String           @id @default(uuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileUrl        String
+  fileType       String
+  originalFileName String?
+  fileSize       Int?
+  reportDate     DateTime
+  patientName    String?
+  patientId      String?
+  patientAge     Int?
+  gender         String?
+  bloodGroup     String?
+  doctorName     String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  parameters     BloodParameter[]
+  analysisResult AnalysisResult?
+}
+
+model BloodParameter {
+  id             String   @id @default(uuid())
+  reportId       String
+  report         Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  name           String
+  value          Float
+  unit           String
+  referenceRange String?
+  status         String // Expected: "Normal", "High", "Low"
+  createdAt      DateTime @default(now())
+}
+
+model AnalysisResult {
+  id              String   @id @default(uuid())
+  reportId        String   @unique
+  report          Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  insights        String   @db.Text
+  recommendations String   @db.Text
+  createdAt       DateTime @default(now())
+}

@@ -1,7 +1,27 @@
 import React from 'react';
-import { User, Droplets, Calendar, UserRound } from 'lucide-react';
+import { Droplets, UserRound } from 'lucide-react';
 
-export const PatientOverview: React.FC = () => {
+interface PatientOverviewProps {
+  patientName?: string | null;
+  patientId?: string | null;
+  patientAge?: number | null;
+  gender?: string | null;
+  bloodGroup?: string | null;
+  lastReportDate?: string | null;
+  doctorName?: string | null;
+}
+
+export const PatientOverview: React.FC<PatientOverviewProps> = ({
+  patientName,
+  patientId,
+  patientAge,
+  gender,
+  bloodGroup,
+  lastReportDate,
+  doctorName,
+}) => {
+  const ageGender = [patientAge ? String(patientAge) : null, gender].filter(Boolean).join(' / ');
+
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -10,30 +30,32 @@ export const PatientOverview: React.FC = () => {
             <UserRound size={28} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-800">Alexander Thorne</h2>
-            <p className="text-slate-500 text-sm">Patient ID: <span className="font-semibold">#28471</span></p>
+            <h2 className="text-xl font-bold text-slate-800">{patientName || 'Unknown Patient'}</h2>
+            <p className="text-slate-500 text-sm">
+              Patient ID: <span className="font-semibold">{patientId || 'N/A'}</span>
+            </p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
           <div>
             <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">Age / Gender</p>
-            <p className="font-semibold text-slate-700">28 / Male</p>
+            <p className="font-semibold text-slate-700">{ageGender || 'N/A'}</p>
           </div>
           <div>
             <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">Blood Group</p>
             <div className="flex items-center gap-1.5 font-semibold text-rose-600">
               <Droplets size={14} />
-              <span>O Positive</span>
+              <span>{bloodGroup || 'N/A'}</span>
             </div>
           </div>
           <div>
-            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">Report Date</p>
-            <p className="font-semibold text-slate-700">Jan 28, 2026</p>
+            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">Last Report Date</p>
+            <p className="font-semibold text-slate-700">{lastReportDate || 'N/A'}</p>
           </div>
           <div>
             <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">Ref. Doctor</p>
-            <p className="font-semibold text-slate-700">Dr. Sarah Miller</p>
+            <p className="font-semibold text-slate-700">{doctorName || ''}</p>
           </div>
         </div>
       </div>

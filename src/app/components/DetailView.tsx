@@ -1,18 +1,31 @@
 import React from 'react';
-import { motion } from 'motion/react';
-import { X, ArrowLeft, Info, TrendingUp, History, Download } from 'lucide-react';
+import { ArrowLeft, Info, TrendingUp, History, Download } from 'lucide-react';
 import { Parameter } from './ParameterCard';
 import { TrendsChart } from './TrendsChart';
+import { findTrendByParameterName, normalizeStatus, toNumericValue } from '@/lib/parameterUtils';
 
 interface DetailViewProps {
   parameter: Parameter;
   onClose: () => void;
+  trends?: Record<string, any>;
 }
 
-export const DetailView: React.FC<DetailViewProps> = ({ parameter, onClose }) => {
+export const DetailView: React.FC<DetailViewProps> = ({ parameter, onClose, trends }) => {
+  // Get trend data for this specific parameter (case-insensitive fallback)
+  const paramTrendData = findTrendByParameterName(trends, parameter.name);
+
+  // Build past readings from trend data
+  const pastReadings = paramTrendData.length > 0
+    ? paramTrendData.map((point: any) => ({
+        date: new Date(point.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        value: point.value,
+        status: normalizeStatus(undefined, toNumericValue(point.value), parameter.range),
+      })).reverse()
+    : [{ date: 'Latest', value: parameter.value, status: parameter.status }];
+
   return (
     <div className="space-y-6">
-      <button 
+      <button
         onClick={onClose}
         className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-medium transition-colors"
       >
@@ -29,7 +42,7 @@ export const DetailView: React.FC<DetailViewProps> = ({ parameter, onClose }) =>
               <span className="text-5xl font-black text-slate-900">{parameter.value}</span>
               <span className="text-lg text-slate-400 font-bold">{parameter.unit}</span>
             </div>
-            
+
             <div className="space-y-4">
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Status</p>
@@ -71,11 +84,11 @@ export const DetailView: React.FC<DetailViewProps> = ({ parameter, onClose }) =>
                   <p className="text-sm text-slate-500">Showing data from last 4 months</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center bg-slate-100 p-1 rounded-xl">
                 {['Weekly', 'Monthly', 'Yearly'].map((tab) => (
-                  <button 
-                    key={tab} 
+                  <button
+                    key={tab}
                     className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'Monthly' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     {tab}
@@ -84,7 +97,7 @@ export const DetailView: React.FC<DetailViewProps> = ({ parameter, onClose }) =>
               </div>
             </div>
 
-            <TrendsChart parameterName={parameter.name} />
+            <TrendsChart parameterName={parameter.name} data={paramTrendData} referenceRange={parameter.range} />
           </div>
 
           <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
@@ -102,27 +115,23 @@ export const DetailView: React.FC<DetailViewProps> = ({ parameter, onClose }) =>
                     <th className="pb-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
                     <th className="pb-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Value</th>
                     <th className="pb-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                    <th className="pb-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Lab</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {[
-                    { date: 'Jan 28, 2026', value: parameter.value, status: parameter.status, lab: 'City Diagnostic Center' },
-                    { date: 'Dec 15, 2025', value: 14.5, status: 'normal', lab: 'Central Hospital' },
-                    { date: 'Nov 02, 2025', value: 13.8, status: 'normal', lab: 'City Diagnostic Center' },
-                  ].map((row, i) => (
+                  {pastReadings.map((row: any, i: number) => (
                     <tr key={i} className="group hover:bg-slate-50/50 transition-colors">
                       <td className="py-4 text-sm font-semibold text-slate-700">{row.date}</td>
                       <td className="py-4 text-sm font-bold text-slate-900">{row.value} {parameter.unit}</td>
                       <td className="py-4">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                          row.status === 'normal' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
+                          row.status === 'normal' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                          row.status === 'low' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                          row.status === 'high' ? 'bg-rose-50 text-rose-600 border-rose-100' :
                           'bg-amber-50 text-amber-600 border-amber-100'
                         }`}>
                           {row.status}
                         </span>
                       </td>
-                      <td className="py-4 text-sm text-slate-500 font-medium">{row.lab}</td>
                     </tr>
                   ))}
                 </tbody>
