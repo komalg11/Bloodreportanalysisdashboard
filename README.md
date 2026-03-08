@@ -9,18 +9,6 @@ Database: PostgreSQL
 OCR: PDF text extraction + image OCR
 Charts: Recharts / Chart libraries
 
-Project Structure
-Bloodreportanalysisdashboard
-│
-├── backend          → Node.js API server
-│
-├── src              → React frontend source code
-│
-├── index.html       → Frontend entry
-├── package.json     → Frontend dependencies
-├── vite.config.ts
-│
-└── README.md
 Prerequisites
 Before running the project, make sure the following are installed on your system:
 Node.js (version 18 or higher)
